@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { EconomyOnboardingForm } from "@/components/EconomyOnboardingForm";
+import { getSessionUserId } from "@/lib/auth";
 
 interface EconomyOnboardingPageProps {
   searchParams: Promise<{
@@ -9,7 +11,13 @@ interface EconomyOnboardingPageProps {
 export default async function EconomyOnboardingPage({
   searchParams,
 }: EconomyOnboardingPageProps) {
-  const { userId = "" } = await searchParams;
+  const { userId } = await searchParams;
+  const sessionUserId = await getSessionUserId();
+  const resolvedUserId = userId ?? sessionUserId;
 
-  return <EconomyOnboardingForm userId={userId} />;
+  if (!resolvedUserId) {
+    redirect("/login");
+  }
+
+  return <EconomyOnboardingForm userId={resolvedUserId} />;
 }

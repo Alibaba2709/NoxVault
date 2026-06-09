@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { FixedCostsOnboardingForm } from "@/components/FixedCostsOnboardingForm";
+import { getSessionUserId } from "@/lib/auth";
 
 interface FixedCostsOnboardingPageProps {
   searchParams: Promise<{
@@ -9,7 +11,13 @@ interface FixedCostsOnboardingPageProps {
 export default async function FixedCostsOnboardingPage({
   searchParams,
 }: FixedCostsOnboardingPageProps) {
-  const { userId = "" } = await searchParams;
+  const { userId } = await searchParams;
+  const sessionUserId = await getSessionUserId();
+  const resolvedUserId = userId ?? sessionUserId;
 
-  return <FixedCostsOnboardingForm userId={userId} />;
+  if (!resolvedUserId) {
+    redirect("/login");
+  }
+
+  return <FixedCostsOnboardingForm userId={resolvedUserId} />;
 }

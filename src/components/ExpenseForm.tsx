@@ -3,19 +3,18 @@
 import { useState } from "react";
 import { euroInputToCents } from "@/lib/client-money";
 import {
+  allBudgetCategories,
   budgetCategoryLabels,
   type BudgetCategory,
-  type CategoryProgressData,
 } from "@/types/finance";
 
 interface ExpenseFormProps {
   userId: string;
-  categories: CategoryProgressData[];
 }
 
 type FormStatus = "idle" | "saving" | "success" | "error";
 
-export function ExpenseForm({ userId, categories }: ExpenseFormProps) {
+export function ExpenseForm({ userId }: ExpenseFormProps) {
   const [status, setStatus] = useState<FormStatus>("idle");
   const [message, setMessage] = useState("");
 
@@ -87,9 +86,9 @@ export function ExpenseForm({ userId, categories }: ExpenseFormProps) {
             name="category"
             className="h-11 rounded-md border border-slate-800 bg-slate-950/60 px-3 text-slate-300 outline-none transition focus:border-indigo-400/60"
           >
-            {categories.map((category) => (
-              <option key={category.category} value={category.category}>
-                {budgetCategoryLabels[category.category]}
+            {allBudgetCategories.map((category) => (
+              <option key={category} value={category}>
+                {budgetCategoryLabels[category]}
               </option>
             ))}
           </select>

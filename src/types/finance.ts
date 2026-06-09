@@ -6,6 +6,7 @@ export type BudgetCategory =
   | "leisure"
   | "home"
   | "health"
+  | "subscriptions"
   | "extra";
 
 export type RecurringFrequency = "monthly" | "annual";
@@ -16,6 +17,7 @@ export const budgetCategoryLabels: Record<BudgetCategory, string> = {
   leisure: "Svago",
   home: "Casa",
   health: "Salute",
+  subscriptions: "Abbonamenti",
   extra: "Extra",
 };
 
@@ -68,6 +70,17 @@ export interface RegisterInput {
   name: string;
   email: string;
   password: string;
+  confirmPassword: string;
+}
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export interface UpdateProfileInput {
+  monthlyIncome: number;
+  budgets: Partial<CategoryBudgets>;
 }
 
 export interface EconomyOnboardingInput {

@@ -1,23 +1,17 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { AppNavbar } from "@/components/AppNavbar";
 import { CategoryProgress } from "@/components/CategoryProgress";
-import { DashboardGate } from "@/components/DashboardGate";
-import { ExpenseForm } from "@/components/ExpenseForm";
 import { NoxVaultLogo } from "@/components/NoxVaultLogo";
+import { getSessionUserId } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
 import { formatCurrency } from "@/lib/money";
 import { budgetCategoryLabels } from "@/types/finance";
 
-interface DashboardPageProps {
-  searchParams: Promise<{
-    userId?: string;
-  }>;
-}
-
-export default async function DashboardPage({ searchParams }: DashboardPageProps) {
-  const { userId } = await searchParams;
-
+export default async function DashboardPage() {
+  const userId = await getSessionUserId();
   if (!userId) {
-    return <DashboardGate />;
+    redirect("/login");
   }
 
   let dashboard = null;
@@ -41,27 +35,23 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(49,46,129,0.22),transparent_32rem),linear-gradient(180deg,#020617,#0f172a_52%,#111827)] px-5 py-8 text-slate-300 sm:px-8 lg:px-12">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <NoxVaultLogo compact />
-            <h1 className="mt-6 max-w-2xl text-4xl font-semibold tracking-normal text-slate-100 sm:text-5xl">
-              Ciao {dashboard.user.name}, ecco il tuo mese.
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400">
-              Il budget disponibile reale nasce dallo stipendio meno costi
-              fissi. Le barre mostrano quanto stai usando rispetto ai budget
-              impostati nell&apos;onboarding.
-            </p>
-          </div>
-          <Link
-            href="/register"
-            className="inline-flex h-11 items-center justify-center rounded-md border border-slate-700 px-4 text-sm text-slate-300 transition hover:border-slate-500 hover:bg-slate-900"
-          >
-            Nuovo profilo
-          </Link>
-        </header>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(49,46,129,0.22),transparent_32rem),linear-gradient(180deg,#020617,#0f172a_52%,#111827)] text-slate-300">
+      <AppNavbar
+        metricLabel="Disponibile reale"
+        metricValue={formatCurrency(dashboard.realAvailableBudget)}
+        userName={dashboard.user.name}
+      />
+
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-12">
+        <section>
+          <h1 className="max-w-2xl text-4xl font-semibold tracking-normal text-slate-100 sm:text-5xl">
+            Panoramica finanziaria
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-400">
+            Ciao {dashboard.user.name}, qui trovi budget reale, costi fissi e
+            categorie aggiornate.
+          </p>
+        </section>
 
         <section className="grid gap-4 md:grid-cols-4">
           <SummaryTile
@@ -86,83 +76,82 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           />
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-medium text-slate-200">
-                  Budget categorie
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Arancione e rosso indicano categorie vicine al limite.
-                </p>
-              </div>
+        <section className="space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-slate-200">
+                Budget categorie
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Arancione e rosso indicano categorie vicine al limite.
+              </p>
             </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {dashboard.categories.map((category) => (
-                <CategoryProgress key={category.category} category={category} />
-              ))}
-            </div>
+            <Link
+              href="/dashboard/manage"
+              className="inline-flex h-11 items-center justify-center rounded-md bg-sky-400/85 px-4 text-sm font-medium text-slate-950 transition hover:bg-sky-300"
+            >
+              Aggiungi movimento
+            </Link>
           </div>
 
-          <aside className="space-y-6">
-            <ExpenseForm
-              userId={dashboard.user.id}
-              categories={dashboard.categories}
-            />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {dashboard.categories.map((category) => (
+              <CategoryProgress key={category.category} category={category} />
+            ))}
+          </div>
+        </section>
 
-            <section className="rounded-lg border border-slate-800/80 bg-slate-900/55 p-5">
-              <h2 className="text-base font-medium text-slate-200">
-                Costi fissi
-              </h2>
-              <div className="mt-4 space-y-3">
-                {dashboard.recurringExpenses.map((expense) => (
-                  <div
-                    key={expense.id}
-                    className="flex items-center justify-between gap-3 rounded-md bg-slate-950/45 px-3 py-3"
-                  >
-                    <div>
-                      <p className="text-sm text-slate-300">{expense.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {budgetCategoryLabels[expense.category]} · giorno{" "}
-                        {expense.dueDate}
-                      </p>
-                    </div>
-                    <span className="text-sm tabular-nums text-rose-300">
-                      -{formatCurrency(expense.amount)}
-                    </span>
+        <section className="grid gap-6 lg:grid-cols-2">
+          <section className="rounded-lg border border-slate-800/80 bg-slate-900/55 p-5">
+            <h2 className="text-base font-medium text-slate-200">
+              Costi fissi
+            </h2>
+            <div className="mt-4 space-y-3">
+              {dashboard.recurringExpenses.map((expense) => (
+                <div
+                  key={expense.id}
+                  className="flex items-center justify-between gap-3 rounded-md bg-slate-950/45 px-3 py-3"
+                >
+                  <div>
+                    <p className="text-sm text-slate-300">{expense.name}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {budgetCategoryLabels[expense.category]} - giorno{" "}
+                      {expense.dueDate}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </section>
+                  <span className="text-sm tabular-nums text-rose-300">
+                    -{formatCurrency(expense.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
 
-            <section className="rounded-lg border border-slate-800/80 bg-slate-900/55 p-5">
-              <h2 className="text-base font-medium text-slate-200">
-                Ultime spese
-              </h2>
-              <div className="mt-4 space-y-3">
-                {dashboard.recentExpenses.map((expense) => (
-                  <div
-                    key={expense.id}
-                    className="flex items-center justify-between gap-3 rounded-md bg-slate-950/45 px-3 py-3"
-                  >
-                    <div>
-                      <p className="text-sm text-slate-300">
-                        {expense.description}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {budgetCategoryLabels[expense.category]}
-                      </p>
-                    </div>
-                    <span className="text-sm tabular-nums text-rose-300">
-                      -{formatCurrency(expense.amount)}
-                    </span>
+          <section className="rounded-lg border border-slate-800/80 bg-slate-900/55 p-5">
+            <h2 className="text-base font-medium text-slate-200">
+              Ultime spese
+            </h2>
+            <div className="mt-4 space-y-3">
+              {dashboard.recentExpenses.map((expense) => (
+                <div
+                  key={expense.id}
+                  className="flex items-center justify-between gap-3 rounded-md bg-slate-950/45 px-3 py-3"
+                >
+                  <div>
+                    <p className="text-sm text-slate-300">
+                      {expense.description}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {budgetCategoryLabels[expense.category]}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </section>
-          </aside>
+                  <span className="text-sm tabular-nums text-rose-300">
+                    -{formatCurrency(expense.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
         </section>
       </div>
     </main>

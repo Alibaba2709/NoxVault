@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { euroInputToCents } from "@/lib/client-money";
-import { budgetCategoryLabels, primaryBudgetCategories } from "@/types/finance";
+import { allBudgetCategories, budgetCategoryLabels } from "@/types/finance";
 
 type FormStatus = "idle" | "saving" | "error";
 
@@ -28,7 +28,7 @@ export function EconomyOnboardingForm({ userId }: EconomyOnboardingFormProps) {
         userId,
         monthlyIncome: euroInputToCents(formData.get("monthlyIncome")),
         budgets: Object.fromEntries(
-          primaryBudgetCategories.map((category) => [
+          allBudgetCategories.map((category) => [
             category,
             euroInputToCents(formData.get(category)),
           ]),
@@ -71,7 +71,7 @@ export function EconomyOnboardingForm({ userId }: EconomyOnboardingFormProps) {
         </label>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          {primaryBudgetCategories.map((category) => (
+          {allBudgetCategories.map((category) => (
             <label key={category} className="grid gap-2 text-sm text-slate-400">
               {budgetCategoryLabels[category]}
               <input

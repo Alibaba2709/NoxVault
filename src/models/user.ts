@@ -14,6 +14,7 @@ const categoryBudgetsSchema = new Schema(
     leisure: { type: Number, default: 0, min: 0 },
     home: { type: Number, default: 0, min: 0 },
     health: { type: Number, default: 0, min: 0 },
+    subscriptions: { type: Number, default: 0, min: 0 },
     extra: { type: Number, default: 0, min: 0 },
   },
   { _id: false },

@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";
+import { getSessionUserId } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import {
   isBudgetCategory,
@@ -58,11 +59,16 @@ function validateCreateExpenseInput(payload: unknown): ValidationResult {
 }
 
 export async function POST(request: Request) {
+  const sessionUserId = await getSessionUserId();
   const payload = await request.json().catch(() => null);
   const validation = validateCreateExpenseInput(payload);
 
   if (!validation.ok) {
     return NextResponse.json({ error: validation.message }, { status: 400 });
+  }
+
+  if (!sessionUserId || sessionUserId !== validation.data.userId) {
+    return NextResponse.json({ error: "Non autenticato." }, { status: 401 });
   }
 
   try {

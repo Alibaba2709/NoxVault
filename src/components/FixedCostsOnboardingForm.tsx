@@ -5,8 +5,8 @@ import { useState } from "react";
 import { AuthPanel } from "@/components/AuthPanel";
 import { euroInputToCents } from "@/lib/client-money";
 import {
+  allBudgetCategories,
   budgetCategoryLabels,
-  primaryBudgetCategories,
   type BudgetCategory,
 } from "@/types/finance";
 
@@ -72,7 +72,7 @@ export function FixedCostsOnboardingForm({
           />
         </label>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm text-slate-400">
             Importo mensile
             <input
@@ -87,7 +87,7 @@ export function FixedCostsOnboardingForm({
           </label>
 
           <label className="grid gap-2 text-sm text-slate-400">
-            Giorno scadenza
+            Giorno del mese
             <input
               name="dueDate"
               required
@@ -106,7 +106,7 @@ export function FixedCostsOnboardingForm({
             name="category"
             className="h-11 rounded-md border border-slate-800 bg-slate-950/60 px-3 text-slate-300 outline-none transition focus:border-indigo-400/60"
           >
-            {primaryBudgetCategories.map((category) => (
+            {allBudgetCategories.map((category) => (
               <option key={category} value={category}>
                 {budgetCategoryLabels[category]}
               </option>

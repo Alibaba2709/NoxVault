@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { attachSessionCookie } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import { hashPassword } from "@/lib/password";
 import { isRecord } from "@/lib/validation";
@@ -16,7 +17,7 @@ function validateRegisterInput(payload: unknown): ValidationResult {
     return { ok: false, message: "Dati di registrazione non validi." };
   }
 
-  const { name, email, password } = payload;
+  const { name, email, password, confirmPassword } = payload;
 
   if (typeof name !== "string" || name.trim().length < 2) {
     return { ok: false, message: "Inserisci un nome valido." };
@@ -36,12 +37,21 @@ function validateRegisterInput(payload: unknown): ValidationResult {
     };
   }
 
+  if (typeof confirmPassword !== "string") {
+    return { ok: false, message: "Conferma password mancante." };
+  }
+
+  if (password !== confirmPassword) {
+    return { ok: false, message: "Le password non coincidono." };
+  }
+
   return {
     ok: true,
     data: {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password,
+      confirmPassword,
     },
   };
 }
@@ -74,12 +84,15 @@ export async function POST(request: Request) {
       password: await hashPassword(password),
     });
 
-    return NextResponse.json(
-      {
-        userId: user._id.toString(),
-        nextStep: `/onboarding/economy?userId=${user._id.toString()}`,
-      },
-      { status: 201 },
+    return attachSessionCookie(
+      NextResponse.json(
+        {
+          userId: user._id.toString(),
+          nextStep: `/onboarding/economy?userId=${user._id.toString()}`,
+        },
+        { status: 201 },
+      ),
+      user._id.toString(),
     );
   } catch (error) {
     const message =

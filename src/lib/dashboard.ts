@@ -144,9 +144,7 @@ export async function getDashboardData(
       0,
       realAvailableBudget - variableSpentThisMonth,
     ),
-    categories: allBudgetCategories
-      .filter((category) => budgets[category] > 0)
-      .map((category) => {
+    categories: allBudgetCategories.map((category) => {
         const limit = budgets[category];
         const spent = spentByCategory[category];
         const percentage = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;

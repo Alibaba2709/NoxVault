@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";
+import { getSessionUserId } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import {
   isBudgetCategory,
@@ -67,11 +68,16 @@ function validateRecurringExpenseInput(payload: unknown): ValidationResult {
 }
 
 export async function POST(request: Request) {
+  const sessionUserId = await getSessionUserId();
   const payload = await request.json().catch(() => null);
   const validation = validateRecurringExpenseInput(payload);
 
   if (!validation.ok) {
     return NextResponse.json({ error: validation.message }, { status: 400 });
+  }
+
+  if (!sessionUserId || sessionUserId !== validation.data.userId) {
+    return NextResponse.json({ error: "Non autenticato." }, { status: 401 });
   }
 
   try {
@@ -98,11 +104,16 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const sessionUserId = await getSessionUserId();
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
 
   if (!userId || !Types.ObjectId.isValid(userId)) {
     return NextResponse.json({ error: "Utente non valido." }, { status: 400 });
+  }
+
+  if (!sessionUserId || sessionUserId !== userId) {
+    return NextResponse.json({ error: "Non autenticato." }, { status: 401 });
   }
 
   try {

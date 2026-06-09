@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";
+import { getSessionUserId } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import { isPositiveCents, isRecord } from "@/lib/validation";
 import { UserModel } from "@/models/user";
@@ -55,6 +56,7 @@ function validateEconomyInput(payload: unknown): ValidationResult {
 }
 
 export async function POST(request: Request) {
+  const sessionUserId = await getSessionUserId();
   const payload = await request.json().catch(() => null);
   const validation = validateEconomyInput(payload);
 
@@ -63,6 +65,10 @@ export async function POST(request: Request) {
   }
 
   const { userId, monthlyIncome, budgets } = validation.data;
+
+  if (!sessionUserId || sessionUserId !== userId) {
+    return NextResponse.json({ error: "Non autenticato." }, { status: 401 });
+  }
 
   try {
     await connectToDatabase();
